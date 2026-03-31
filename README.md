@@ -1,6 +1,6 @@
 # setapp
 
-A command-line interface for browsing, searching, and managing [Setapp](https://setapp.com) applications on macOS.
+A command-line interface for browsing, searching, and managing [Setapp](https://go.setapp.com/invite/1vndseho) (referral link) applications on macOS.
 
 Reads directly from Setapp's local SQLite database to provide fast access to app metadata.
 
@@ -39,7 +39,7 @@ setapp [command] [flags]
 
 ## Requirements
 
-- macOS with [Setapp](https://setapp.com) installed
+- macOS with [Setapp](https://go.setapp.com/invite/1vndseho) (referral link) installed
 - Go 1.26.1+
 
 ## License
