@@ -5,7 +5,6 @@ import (
 	"strings"
 
 	"github.com/spf13/cobra"
-	"github.com/thirteen37/setapp/internal/db"
 	"github.com/thirteen37/setapp/internal/model"
 )
 
@@ -22,7 +21,7 @@ func init() {
 }
 
 func runInfo(cmd *cobra.Command, args []string) error {
-	d, err := db.Open()
+	d, err := openDB()
 	if err != nil {
 		return err
 	}
@@ -38,48 +37,49 @@ func runInfo(cmd *cobra.Command, args []string) error {
 		return err
 	}
 	app.Categories = cats
-	app.Installed = model.InstalledAppNames()[app.Name]
+	app.Installed = installedAppNames()[app.Name]
 
 	if jsonOutput {
-		printJSON(app)
+		printJSON(cmd, app)
 		return nil
 	}
 
-	fmt.Printf("Name:         %s\n", app.Name)
-	fmt.Printf("Vendor:       %s\n", app.Vendor)
+	out := cmd.OutOrStdout()
+	fmt.Fprintf(out, "Name:         %s\n", app.Name)
+	fmt.Fprintf(out, "Vendor:       %s\n", app.Vendor)
 	if app.Version != "" {
-		fmt.Printf("Version:      %s\n", app.Version)
+		fmt.Fprintf(out, "Version:      %s\n", app.Version)
 	}
-	fmt.Printf("Status:       %s\n", app.StatusString())
+	fmt.Fprintf(out, "Status:       %s\n", app.StatusString())
 	if app.Tagline != "" {
-		fmt.Printf("Tagline:      %s\n", app.Tagline)
+		fmt.Fprintf(out, "Tagline:      %s\n", app.Tagline)
 	}
 	if len(app.Categories) > 0 {
-		fmt.Printf("Categories:   %s\n", strings.Join(app.Categories, ", "))
+		fmt.Fprintf(out, "Categories:   %s\n", strings.Join(app.Categories, ", "))
 	}
 	if app.Size > 0 {
-		fmt.Printf("Size:         %s\n", model.FormatSize(app.Size))
+		fmt.Fprintf(out, "Size:         %s\n", model.FormatSize(app.Size))
 	}
 	if app.MinOS != "" {
-		fmt.Printf("Min macOS:    %s\n", app.MinOS)
+		fmt.Fprintf(out, "Min macOS:    %s\n", app.MinOS)
 	}
 	if app.MarketingURL != "" {
-		fmt.Printf("Website:      %s\n", app.MarketingURL)
+		fmt.Fprintf(out, "Website:      %s\n", app.MarketingURL)
 	}
 	if app.SharingURL != "" {
-		fmt.Printf("Setapp page:  %s\n", app.SharingURL)
+		fmt.Fprintf(out, "Setapp page:  %s\n", app.SharingURL)
 	}
 	if app.Keywords != "" {
-		fmt.Printf("Keywords:     %s\n", app.Keywords)
+		fmt.Fprintf(out, "Keywords:     %s\n", app.Keywords)
 	}
 	if !app.FirstReleaseTime().IsZero() {
-		fmt.Printf("First release: %s\n", app.FirstReleaseTime().Format("2006-01-02"))
+		fmt.Fprintf(out, "First release: %s\n", app.FirstReleaseTime().Format("2006-01-02"))
 	}
 	if !app.LastReleaseTime().IsZero() {
-		fmt.Printf("Last release:  %s\n", app.LastReleaseTime().Format("2006-01-02"))
+		fmt.Fprintf(out, "Last release:  %s\n", app.LastReleaseTime().Format("2006-01-02"))
 	}
 	if app.Description != "" {
-		fmt.Printf("\n%s\n", app.Description)
+		fmt.Fprintf(out, "\n%s\n", app.Description)
 	}
 
 	return nil

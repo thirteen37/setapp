@@ -2,10 +2,8 @@ package cmd
 
 import (
 	"fmt"
-	"os/exec"
 
 	"github.com/spf13/cobra"
-	"github.com/thirteen37/setapp/internal/db"
 )
 
 var homeCmd = &cobra.Command{
@@ -22,10 +20,10 @@ func init() {
 
 func runHome(cmd *cobra.Command, args []string) error {
 	if len(args) == 0 {
-		return exec.Command("open", "setappDiscovery://").Run()
+		return execCommand("open", "setappDiscovery://").Run()
 	}
 
-	d, err := db.Open()
+	d, err := openDB()
 	if err != nil {
 		return err
 	}
@@ -40,6 +38,6 @@ func runHome(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("no website URL available for %s", app.Name)
 	}
 
-	fmt.Printf("Opening %s website...\n", app.Name)
-	return exec.Command("open", app.MarketingURL).Run()
+	fmt.Fprintf(cmd.OutOrStdout(), "Opening %s website...\n", app.Name)
+	return execCommand("open", app.MarketingURL).Run()
 }

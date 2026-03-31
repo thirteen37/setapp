@@ -2,10 +2,8 @@ package cmd
 
 import (
 	"fmt"
-	"os/exec"
 
 	"github.com/spf13/cobra"
-	"github.com/thirteen37/setapp/internal/db"
 	"github.com/thirteen37/setapp/internal/model"
 )
 
@@ -21,7 +19,7 @@ func init() {
 }
 
 func runOpen(cmd *cobra.Command, args []string) error {
-	d, err := db.Open()
+	d, err := openDB()
 	if err != nil {
 		return err
 	}
@@ -32,10 +30,10 @@ func runOpen(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	if !model.InstalledAppNames()[app.Name] {
+	if !installedAppNames()[app.Name] {
 		return fmt.Errorf("%s is not installed. Use 'setapp install %s' to install it", app.Name, app.Name)
 	}
 
 	appPath := model.AppPath(app.Name)
-	return exec.Command("open", appPath).Run()
+	return execCommand("open", appPath).Run()
 }
