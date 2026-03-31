@@ -3,11 +3,9 @@ package cmd
 import (
 	"fmt"
 	"os"
-	"os/exec"
 	"strings"
 
 	"github.com/spf13/cobra"
-	"github.com/thirteen37/setapp/internal/model"
 )
 
 var doctorCmd = &cobra.Command{
@@ -48,17 +46,17 @@ if kc:
 
 func runDoctor(cmd *cobra.Command, args []string) error {
 	info := doctorInfo{
-		InstalledCount: len(model.InstalledAppNames()),
+		InstalledCount: len(installedAppNames()),
 	}
 
 	// Export plist and parse with Python plistlib (handles nested binary data)
-	plistData, err := exec.Command("defaults", "export", "com.setapp.DesktopClient", "-").Output()
+	plistData, err := execCommand("defaults", "export", "com.setapp.DesktopClient", "-").Output()
 	if err == nil {
 		tmpFile, tmpErr := os.CreateTemp("", "setapp-*.plist")
 		if tmpErr == nil {
 			tmpFile.Write(plistData)
 			tmpFile.Close()
-			out, pyErr := exec.Command("python3", "-c", plistScript, tmpFile.Name()).Output()
+			out, pyErr := execCommand("python3", "-c", plistScript, tmpFile.Name()).Output()
 			os.Remove(tmpFile.Name())
 			if pyErr == nil {
 				parsePlistOutput(string(out), &info)
@@ -68,33 +66,34 @@ func runDoctor(cmd *cobra.Command, args []string) error {
 
 	// Fallback: read account directly
 	if info.Account == "" {
-		out, err := exec.Command("defaults", "read", "com.setapp.DesktopClient", "CurrentUserAccount").Output()
+		out, err := execCommand("defaults", "read", "com.setapp.DesktopClient", "CurrentUserAccount").Output()
 		if err == nil {
 			info.Account = strings.TrimSpace(string(out))
 		}
 	}
 
 	if jsonOutput {
-		printJSON(info)
+		printJSON(cmd, info)
 		return nil
 	}
 
+	w := cmd.OutOrStdout()
 	if info.Account != "" {
-		fmt.Printf("Account:        %s\n", info.Account)
+		fmt.Fprintf(w, "Account:        %s\n", info.Account)
 	}
 	if info.Subscription != "" {
-		fmt.Printf("Subscription:   %s\n", info.Subscription)
+		fmt.Fprintf(w, "Subscription:   %s\n", info.Subscription)
 	}
 	if info.Since != "" {
-		fmt.Printf("Since:          %s\n", info.Since)
+		fmt.Fprintf(w, "Since:          %s\n", info.Since)
 	}
 	if info.Expires != "" {
-		fmt.Printf("Expires:        %s\n", info.Expires)
+		fmt.Fprintf(w, "Expires:        %s\n", info.Expires)
 	}
 	if info.GracePeriod != "" {
-		fmt.Printf("Grace period:   %s\n", info.GracePeriod)
+		fmt.Fprintf(w, "Grace period:   %s\n", info.GracePeriod)
 	}
-	fmt.Printf("Installed apps: %d\n", info.InstalledCount)
+	fmt.Fprintf(w, "Installed apps: %d\n", info.InstalledCount)
 
 	return nil
 }

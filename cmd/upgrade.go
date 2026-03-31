@@ -2,10 +2,8 @@ package cmd
 
 import (
 	"fmt"
-	"os/exec"
 
 	"github.com/spf13/cobra"
-	"github.com/thirteen37/setapp/internal/db"
 )
 
 var upgradeCmd = &cobra.Command{
@@ -22,11 +20,11 @@ func init() {
 
 func runUpgrade(cmd *cobra.Command, args []string) error {
 	if len(args) == 0 {
-		fmt.Println("Opening Setapp to check for updates...")
-		return exec.Command("open", "setappDiscovery://").Run()
+		fmt.Fprintln(cmd.OutOrStdout(), "Opening Setapp to check for updates...")
+		return execCommand("open", "setappDiscovery://").Run()
 	}
 
-	d, err := db.Open()
+	d, err := openDB()
 	if err != nil {
 		return err
 	}
@@ -41,6 +39,6 @@ func runUpgrade(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("no Setapp page URL available for %s", app.Name)
 	}
 
-	fmt.Printf("Opening Setapp page for %s...\n", app.Name)
-	return exec.Command("open", app.SharingURL).Run()
+	fmt.Fprintf(cmd.OutOrStdout(), "Opening Setapp page for %s...\n", app.Name)
+	return execCommand("open", app.SharingURL).Run()
 }

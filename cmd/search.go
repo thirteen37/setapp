@@ -2,12 +2,9 @@ package cmd
 
 import (
 	"fmt"
-	"os"
 	"text/tabwriter"
 
 	"github.com/spf13/cobra"
-	"github.com/thirteen37/setapp/internal/db"
-	"github.com/thirteen37/setapp/internal/model"
 )
 
 var searchCmd = &cobra.Command{
@@ -23,7 +20,7 @@ func init() {
 }
 
 func runSearch(cmd *cobra.Command, args []string) error {
-	d, err := db.Open()
+	d, err := openDB()
 	if err != nil {
 		return err
 	}
@@ -34,22 +31,23 @@ func runSearch(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	installed := model.InstalledAppNames()
+	installed := installedAppNames()
 	for i := range apps {
 		apps[i].Installed = installed[apps[i].Name]
 	}
 
 	if jsonOutput {
-		printJSON(apps)
+		printJSON(cmd, apps)
 		return nil
 	}
 
+	out := cmd.OutOrStdout()
 	if len(apps) == 0 {
-		fmt.Printf("No apps found matching %q.\n", args[0])
+		fmt.Fprintf(out, "No apps found matching %q.\n", args[0])
 		return nil
 	}
 
-	w := tabwriter.NewWriter(os.Stdout, 0, 0, 2, ' ', 0)
+	w := tabwriter.NewWriter(out, 0, 0, 2, ' ', 0)
 	fmt.Fprintln(w, "NAME\tVENDOR\tTAGLINE\tSTATUS")
 	for _, a := range apps {
 		status := ""

@@ -40,6 +40,15 @@ const appColumns = `Z_PK, ZIDENTIFIER, ZNAME, ZBUNDLEIDENTIFIER, ZVENDORNAME, ZT
 	ZMARKETINGVERSIONSTRING, ZMINOSVERSION, ZURLSCHEME, ZJOINEDKEYWORDS,
 	ZFIRSTRELEASEDATE, ZLASTRELEASEDATE`
 
+// qualifiedAppColumns prefixes each column in appColumns with the given table alias.
+func qualifiedAppColumns(alias string) string {
+	cols := strings.Split(appColumns, ",")
+	for i, c := range cols {
+		cols[i] = alias + "." + strings.TrimSpace(c)
+	}
+	return strings.Join(cols, ", ")
+}
+
 func scanApp(row interface{ Scan(...any) error }) (model.App, error) {
 	var a model.App
 	var bundleID, vendor, tagline, desc, marketingURL, sharingURL sql.NullString
@@ -248,7 +257,7 @@ func (d *DB) AllCategories() ([]model.Category, error) {
 
 func (d *DB) AppsByCategory(categoryName string) ([]model.App, error) {
 	rows, err := d.db.Query(
-		"SELECT "+appColumns+" FROM ZAPP a JOIN Z_1SETAPPCATEGORIES j ON j.Z_1APPLICATIONS = a.Z_PK JOIN ZSETAPPCATEGORY c ON j.Z_20SETAPPCATEGORIES = c.Z_PK WHERE c.ZNAME = ? COLLATE NOCASE ORDER BY a.ZNAME COLLATE NOCASE",
+		"SELECT "+qualifiedAppColumns("a")+" FROM ZAPP a JOIN Z_1SETAPPCATEGORIES j ON j.Z_1APPLICATIONS = a.Z_PK JOIN ZSETAPPCATEGORY c ON j.Z_20SETAPPCATEGORIES = c.Z_PK WHERE c.ZNAME = ? COLLATE NOCASE ORDER BY a.ZNAME COLLATE NOCASE",
 		categoryName,
 	)
 	if err != nil {

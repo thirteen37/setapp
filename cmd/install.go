@@ -2,11 +2,8 @@ package cmd
 
 import (
 	"fmt"
-	"os/exec"
 
 	"github.com/spf13/cobra"
-	"github.com/thirteen37/setapp/internal/db"
-	"github.com/thirteen37/setapp/internal/model"
 )
 
 var installCmd = &cobra.Command{
@@ -22,7 +19,7 @@ func init() {
 }
 
 func runInstall(cmd *cobra.Command, args []string) error {
-	d, err := db.Open()
+	d, err := openDB()
 	if err != nil {
 		return err
 	}
@@ -33,8 +30,8 @@ func runInstall(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	if model.InstalledAppNames()[app.Name] {
-		fmt.Printf("%s is already installed.\n", app.Name)
+	if installedAppNames()[app.Name] {
+		fmt.Fprintf(cmd.OutOrStdout(), "%s is already installed.\n", app.Name)
 		return nil
 	}
 
@@ -42,6 +39,6 @@ func runInstall(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("no Setapp page URL available for %s", app.Name)
 	}
 
-	fmt.Printf("Opening Setapp page for %s...\n", app.Name)
-	return exec.Command("open", app.SharingURL).Run()
+	fmt.Fprintf(cmd.OutOrStdout(), "Opening Setapp page for %s...\n", app.Name)
+	return execCommand("open", app.SharingURL).Run()
 }

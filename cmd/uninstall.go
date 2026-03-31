@@ -7,7 +7,6 @@ import (
 	"strings"
 
 	"github.com/spf13/cobra"
-	"github.com/thirteen37/setapp/internal/db"
 	"github.com/thirteen37/setapp/internal/model"
 )
 
@@ -27,7 +26,7 @@ func init() {
 }
 
 func runUninstall(cmd *cobra.Command, args []string) error {
-	d, err := db.Open()
+	d, err := openDB()
 	if err != nil {
 		return err
 	}
@@ -38,27 +37,28 @@ func runUninstall(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	if !model.InstalledAppNames()[app.Name] {
+	if !installedAppNames()[app.Name] {
 		return fmt.Errorf("%s is not installed", app.Name)
 	}
 
 	appPath := model.AppPath(app.Name)
+	out := cmd.OutOrStdout()
 
 	if !forceUninstall {
-		fmt.Printf("Uninstall %s? This will remove %s [y/N] ", app.Name, appPath)
+		fmt.Fprintf(out, "Uninstall %s? This will remove %s [y/N] ", app.Name, appPath)
 		reader := bufio.NewReader(os.Stdin)
 		answer, _ := reader.ReadString('\n')
 		answer = strings.TrimSpace(strings.ToLower(answer))
 		if answer != "y" && answer != "yes" {
-			fmt.Println("Cancelled.")
+			fmt.Fprintln(out, "Cancelled.")
 			return nil
 		}
 	}
 
-	if err := os.RemoveAll(appPath); err != nil {
+	if err := removeAll(appPath); err != nil {
 		return fmt.Errorf("failed to remove %s: %w", appPath, err)
 	}
 
-	fmt.Printf("Uninstalled %s.\n", app.Name)
+	fmt.Fprintf(out, "Uninstalled %s.\n", app.Name)
 	return nil
 }

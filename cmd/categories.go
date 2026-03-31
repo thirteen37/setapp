@@ -2,11 +2,9 @@ package cmd
 
 import (
 	"fmt"
-	"os"
 	"text/tabwriter"
 
 	"github.com/spf13/cobra"
-	"github.com/thirteen37/setapp/internal/db"
 )
 
 var categoriesCmd = &cobra.Command{
@@ -20,7 +18,7 @@ func init() {
 }
 
 func runCategories(cmd *cobra.Command, args []string) error {
-	d, err := db.Open()
+	d, err := openDB()
 	if err != nil {
 		return err
 	}
@@ -32,11 +30,11 @@ func runCategories(cmd *cobra.Command, args []string) error {
 	}
 
 	if jsonOutput {
-		printJSON(cats)
+		printJSON(cmd, cats)
 		return nil
 	}
 
-	w := tabwriter.NewWriter(os.Stdout, 0, 0, 2, ' ', 0)
+	w := tabwriter.NewWriter(cmd.OutOrStdout(), 0, 0, 2, ' ', 0)
 	fmt.Fprintln(w, "NAME\tDESCRIPTION")
 	for _, c := range cats {
 		fmt.Fprintf(w, "%s\t%s\n", c.Name, c.Description)
